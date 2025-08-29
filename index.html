@@ -24,6 +24,7 @@
     border: 3px solid white;
     max-width: 90vw;
     max-height: 90vh;
+    touch-action: none; /* Prevent default touch scrolling */
   }
   .controls {
     display: grid;
@@ -95,6 +96,7 @@ let dx = box, dy = 0;
 let score = 0;
 let speed = 150;
 
+// Draw game
 function draw() {
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -113,7 +115,7 @@ function draw() {
   let head = {x: snake[snake.length - 1].x + dx, y: snake[snake.length - 1].y + dy};
 
   // Wall collision = game over
-  if (head.x < 0 || head.x >= canvas.width+1 || head.y < 0 || head.y >= canvas.height+1) {
+  if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
       alert("Game Over! Score: " + score);
       document.location.reload();
   }
@@ -162,6 +164,32 @@ document.getElementById("up").onclick = () => { if (dy === 0) {dx = 0; dy = -box
 document.getElementById("down").onclick = () => { if (dy === 0) {dx = 0; dy = box;} };
 document.getElementById("left").onclick = () => { if (dx === 0) {dx = -box; dy = 0;} };
 document.getElementById("right").onclick = () => { if (dx === 0) {dx = box; dy = 0;} };
+
+// Swipe gesture controls
+let touchStartX = 0;
+let touchStartY = 0;
+
+canvas.addEventListener('touchstart', (e) => {
+  const touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+}, {passive: true});
+
+canvas.addEventListener('touchend', (e) => {
+  const touch = e.changedTouches[0];
+  let dxSwipe = touch.clientX - touchStartX;
+  let dySwipe = touch.clientY - touchStartY;
+
+  if (Math.abs(dxSwipe) > Math.abs(dySwipe)) {
+    // Horizontal swipe
+    if (dxSwipe > 0 && dx === 0) { dx = box; dy = 0; }   // swipe right
+    if (dxSwipe < 0 && dx === 0) { dx = -box; dy = 0; }  // swipe left
+  } else {
+    // Vertical swipe
+    if (dySwipe > 0 && dy === 0) { dx = 0; dy = box; }   // swipe down
+    if (dySwipe < 0 && dy === 0) { dx = 0; dy = -box; }  // swipe up
+  }
+}, {passive: true});
 
 draw();
 </script>
