@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Snake Game 🐍</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: black;
+      color: white;
+      font-family: Arial;
+    }
+    .game-container {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    canvas {
+      background: #111;
+      border: 3px solid white;
+      max-width: 90vw;
+      max-height: 90vh;
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: 80px 80px 80px;
+      grid-template-rows: 80px 80px 80px;
+      gap: 10px;
+    }
+    button {
+      background: #444;
+      color: white;
+      font-size: 28px;
+      font-weight: bold;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      width: 80px;
+      height: 80px;
+      touch-action: manipulation;
+    }
+    button:active {
+      background: #666;
+    }
+    .empty { visibility: hidden; }
+    @media(max-width: 768px) {
+      .controls {
+        grid-template-columns: 60px 60px 60px;
+        grid-template-rows: 60px 60px 60px;
+      }
+      button {
+        width: 60px;
+        height: 60px;
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <canvas id="game" width="600" height="600"></canvas>
+
+    <div class="controls">
+      <div class="empty"></div>
+      <button id="up">⬆️</button>
+      <div class="empty"></div>
+      <button id="left">⬅️</button>
+      <button id="down">⬇️</button>
+      <button id="right">➡️</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    let box = 30; // block size
+    let rows = canvas.height / box;
+    let cols = canvas.width / box;
+
+    let snake = [{x: 9 * box, y: 9 * box}];
+    let food = {
+      x: Math.floor(Math.random() * cols) * box,
+      y: Math.floor(Math.random() * rows) * box
+    };
+
+    let dx = box, dy = 0;
+    let score = 0;
+    let speed = 150;
+
+    function draw() {
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw snake
+      for (let i = 0; i < snake.length; i++) {
+        ctx.fillStyle = i === snake.length - 1 ? "limegreen" : "green";
+        ctx.fillRect(snake[i].x, snake[i].y, box, box);
+      }
+
+      // Draw food
+      ctx.fillStyle = "red";
+      ctx.fillRect(food.x, food.y, box, box);
+
+      let head = {x: snake[snake.length - 1].x + dx, y: snake[snake.length - 1].y + dy};
+
+      // Wall wrap-around instead of game over
+      if (head.x < 0) head.x = canvas.width - box;
+      if (head.x >= canvas.width) head.x = 0;
+      if (head.y < 0) head.y = canvas.height - box;
+      if (head.y >= canvas.height) head.y = 0;
+
+      // Self collision = game over
+      for (let i = 0; i < snake.length; i++) {
+        if (snake[i].x === head.x && snake[i].y === head.y) {
+          alert("Game Over! Score: " + score);
+          document.location.reload();
+        }
+      }
+
+      snake.push(head);
+
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        food = {
+          x: Math.floor(Math.random() * cols) * box,
+          y: Math.floor(Math.random() * rows) * box
+        };
+        if (speed > 50) speed -= 5; // increase difficulty
+      } else {
+        snake.shift();
+      }
+
+      setTimeout(draw, speed);
+    }
+
+    // Keyboard controls
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowLeft" && dx === 0) {dx = -box; dy = 0;}
+      if (e.key === "ArrowRight" && dx === 0) {dx = box; dy = 0;}
+      if (e.key === "ArrowUp" && dy === 0) {dx = 0; dy = -box;}
+      if (e.key === "ArrowDown" && dy === 0) {dx = 0; dy = box;}
+    });
+
+    // On-screen buttons
+    document.getElementById("up").onclick = () => { if (dy === 0) {dx = 0; dy = -box;} };
+    document.getElementById("down").onclick = () => { if (dy === 0) {dx = 0; dy = box;} };
+    document.getElementById("left").onclick = () => { if (dx === 0) {dx = -box; dy = 0;} };
+    document.getElementById("right").onclick = () => { if (dx === 0) {dx = box; dy = 0;} };
+
+    draw();
+  </script>
+</body>
+</html>
